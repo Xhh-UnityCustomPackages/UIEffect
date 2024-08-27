@@ -10,7 +10,6 @@ namespace Game.Core.UIEffect.Editor
         public static readonly GUIStyle SmallTickbox = new GUIStyle("ShurikenToggle");
 
         private static Rect _splitterRect;
-
         static readonly Color _splitterdark = new Color(0.12f, 0.12f, 0.12f, 1.333f);
         static readonly Color _splitterlight = new Color(0.6f, 0.6f, 0.6f, 1.333f);
         public static Color Splitter { get { return EditorGUIUtility.isProSkin ? _splitterdark : _splitterlight; } }
@@ -19,17 +18,24 @@ namespace Game.Core.UIEffect.Editor
         static readonly Color _headerbackgroundlight = new Color(1f, 1f, 1f, 0.4f);
         public static Color HeaderBackground { get { return EditorGUIUtility.isProSkin ? _headerbackgrounddark : _headerbackgroundlight; } }
 
+        static readonly Color _reorderdark = new Color(1f, 1f, 1f, 0.2f);
+        static readonly Color _reorderlight = new Color(0.1f, 0.1f, 0.1f, 0.2f);
+        public static Color Reorder { get { return EditorGUIUtility.isProSkin ? _reorderdark : _reorderlight; } }
+
+        static readonly Texture2D _paneoptionsicondark;
+        static readonly Texture2D _paneoptionsiconlight;
+        public static Texture2D PaneOptionsIcon { get { return EditorGUIUtility.isProSkin ? _paneoptionsicondark : _paneoptionsiconlight; } }
+
         private static Rect _backgroundRect;
         private static Rect _reorderRect;
         private static Rect _labelRect;
         private static Rect _foldoutRect;
         private static Rect _toggleRect;
-        private static Texture2D _menuIcon;
-        static readonly Texture2D _paneoptionsicondark;
-        static readonly Texture2D _paneoptionsiconlight;
-        public static Texture2D PaneOptionsIcon { get { return EditorGUIUtility.isProSkin ? _paneoptionsicondark : _paneoptionsiconlight; } }
 
+
+        private static Texture2D _menuIcon;
         private static Rect _menuRect;
+        private static Rect _workRect;
         private static Rect _genericMenuRect;
         private static GenericMenu _genericMenu;
         private static Color _headerBackgroundColor;
@@ -43,6 +49,7 @@ namespace Game.Core.UIEffect.Editor
         public static void InitStyling()
         {
             _menuIcon = PaneOptionsIcon;
+            _menuRect = new Rect();
             _genericMenu = new GenericMenu();
         }
 
@@ -80,6 +87,7 @@ namespace Game.Core.UIEffect.Editor
             // Initialize Rects
             _backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
 
+
             var offset = 4f;
 
             _reorderRect = _backgroundRect;
@@ -105,8 +113,10 @@ namespace Game.Core.UIEffect.Editor
             _toggleRect.width = 13f;
             _toggleRect.height = 13f;
 
+            // Background rect should be full-width
+            _backgroundRect.xMin = 0f;
+            _backgroundRect.width += 4f;
             _headerBackgroundColor = HeaderBackground;
-
             EditorGUI.DrawRect(_backgroundRect, _headerBackgroundColor);
 
             // Foldout
@@ -124,7 +134,6 @@ namespace Game.Core.UIEffect.Editor
                 host.SetMaterialDirty();
             }
 
-            // Handle events
             _menuRect.x = _labelRect.xMax + 4f;
             _menuRect.y = _labelRect.y;
             _menuRect.width = _menuIcon.width;
@@ -132,6 +141,17 @@ namespace Game.Core.UIEffect.Editor
 
             // Dropdown menu icon
             GUI.DrawTexture(_menuRect, _menuIcon);
+
+            for (int i = 0; i < 3; i++)
+            {
+                _workRect = _reorderRect;
+                _workRect.height = 1;
+                _workRect.y = _reorderRect.y + _reorderRect.height * (i / 3.0f);
+                EditorGUI.DrawRect(_workRect, Reorder);
+            }
+
+
+            // Handle events
             if (e.type == EventType.MouseDown)
             {
                 if (_menuRect.Contains(e.mousePosition))
@@ -145,6 +165,12 @@ namespace Game.Core.UIEffect.Editor
                     _genericMenu.DropDown(_genericMenuRect);
                     e.Use();
                 }
+            }
+
+            if (e.type == EventType.MouseDown && _labelRect.Contains(e.mousePosition) && e.button == 0)
+            {
+                expanded = !expanded;
+                e.Use();
             }
 
             return _backgroundRect;

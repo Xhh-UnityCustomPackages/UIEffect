@@ -30,6 +30,8 @@ namespace Game.Core.UIEffect.Editor
         protected BaseUIEffect m_PickedUIEffect;
         protected bool m_PickedUIEffectIsExpanded;
         protected bool m_CachedGUI = false;
+        protected int _draggedStartID = -1;
+        protected int _draggedEndID = -1;
 
         protected virtual void OnEnable()
         {
@@ -125,7 +127,7 @@ namespace Game.Core.UIEffect.Editor
             InspectorCaching();
             DrawUIEffectsList();
             DrawBottomBar();
-
+            HandleReordering();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -209,7 +211,40 @@ namespace Game.Core.UIEffect.Editor
                 },
                 m_UIEffect);
 
-            EditorGUI.DrawRect(headerRect, _draggedColor);
+            // Check if we start dragging this feedback
+            switch (_currentEvent.type)
+            {
+                case EventType.MouseDown:
+                    if (headerRect.Contains(_currentEvent.mousePosition))
+                    {
+                        _draggedStartID = i;
+                        _currentEvent.Use();
+                    }
+                    break;
+            }
+
+            // Draw blue rect if feedback is being dragged
+            if (_draggedStartID == i && headerRect != Rect.zero)
+            {
+                EditorGUI.DrawRect(headerRect, _draggedColor);
+            }
+
+
+            // If hovering at the top of the feedback while dragging one, check where the feedback should be dropped : top or bottom
+            if (headerRect.Contains(_currentEvent.mousePosition))
+            {
+                if (_draggedStartID >= 0)
+                {
+                    _draggedEndID = i;
+                    Rect headerSplit = headerRect;
+                    headerSplit.height *= 0.5f;
+                    headerSplit.y += headerSplit.height;
+                    if (headerSplit.Contains(_currentEvent.mousePosition))
+                    {
+                        _draggedEndID = i + 1;
+                    }
+                }
+            }
         }
 
         private void RemoveUIEffect(int index)
@@ -254,6 +289,35 @@ namespace Game.Core.UIEffect.Editor
         protected virtual BaseUIEffect AddUIEffect(System.Type type)
         {
             return (target as UIEffect).AddUIEffect(type);
+        }
+
+        protected virtual void HandleReordering()
+        {
+            if (_draggedStartID >= 0 && _draggedEndID >= 0)
+            {
+                if (_draggedEndID != _draggedStartID)
+                {
+                    if (_draggedEndID > _draggedStartID)
+                        _draggedEndID--;
+                    m_UIEffects.MoveArrayElement(_draggedStartID, _draggedEndID);
+                    _draggedStartID = _draggedEndID;
+                    m_UIEffectInspectorMap.Clear();
+                }
+            }
+
+            if (_draggedStartID >= 0 || _draggedEndID >= 0)
+            {
+                switch (_currentEvent.type)
+                {
+                    case EventType.MouseUp:
+                        _draggedStartID = -1;
+                        _draggedEndID = -1;
+                        _currentEvent.Use();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         public virtual void ForceRepaint()
