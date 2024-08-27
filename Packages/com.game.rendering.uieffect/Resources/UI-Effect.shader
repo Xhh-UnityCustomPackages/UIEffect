@@ -59,6 +59,7 @@ Shader "Hidden/UI/UI-Effect"
             #pragma multi_compile_local _ _FADELOOP_ON
             #pragma multi_compile_local _ _GRAY_ON
             #pragma multi_compile_local _ _LINERASPACE_ON
+            #pragma multi_compile_local _ _ROTATE_ON
             
 
             struct appdata_t
@@ -84,10 +85,40 @@ Shader "Hidden/UI/UI-Effect"
             float4 _ClipRect;
             float4 _MainTex_ST;
 
-
-
+        #ifdef _FADELOOP_ON
             float _FadeSpeed;
+
+            void ApplyFadeLoop(inout float alpha)
+            {
+                float time = _Time.z * _FadeSpeed;
+                float a = abs(time - floor((time + 1) / 2) * 2);
+                alpha *= a;
+            }
+        #endif
+
+        #ifdef _GRAY_ON
             float _GreyFactor;
+        #endif
+
+        #ifdef _ROTATE_ON
+            float _RotateSpeed;
+            float2 _RotateCenter;
+
+            void ApplyRotate(float2 uv, out float2 newUV)
+            {
+                half2 center = half2(0.5, 0.5);
+                // half2 center = _RotateCenter;
+                half2 uvC = uv;
+                half cosAngle = cos(_Time.z * _RotateSpeed);
+                half sinAngle = sin(_Time.z * _RotateSpeed);
+                half2x2 rot = half2x2(cosAngle, -sinAngle, sinAngle, cosAngle);
+                uvC -= center;
+                newUV = mul(rot, uvC);
+                newUV += center;
+            }
+        #endif
+
+            
 
             v2f vert(appdata_t v)
             {
@@ -100,6 +131,13 @@ Shader "Hidden/UI/UI-Effect"
                 OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
 
                 OUT.color = v.color * _Color;
+
+            #ifdef _ROTATE_ON
+                ApplyRotate(OUT.texcoord, OUT.texcoord);
+
+            #endif
+
+
                 return OUT;
             }
 
@@ -123,11 +161,8 @@ Shader "Hidden/UI/UI-Effect"
             #endif
 
             #ifdef _FADELOOP_ON
-                float a = abs(_Time.z - floor((_Time.z + 1) / 2) * 2) * _FadeSpeed;
-                a = saturate(a);
-                color.a *= a;
+                ApplyFadeLoop(color.a);
             #endif
-                // return a;
 
             #ifdef _LINERASPACE_ON
                 half3 temp = (color.a).xxx;

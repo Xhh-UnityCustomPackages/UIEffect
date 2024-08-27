@@ -6,7 +6,6 @@ using UnityEngine.UI;
 namespace Game.Core.UIEffect
 {
     [UIEffectPath("UIFadeLoop")]
-
     public class UIFadeLoop : BaseMaterialEffect
     {
         public override string MaterialKeyWord => "_FADELOOP_ON";
