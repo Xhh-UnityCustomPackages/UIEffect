@@ -57,9 +57,10 @@ Shader "Hidden/UI/UI-Effect"
             // -------------------------------------
             // Material Keywords  为了避免变体管理 先全部设置成 multi_compile_local
             #pragma multi_compile_local _ _FADELOOP_ON
-            #pragma multi_compile_local _ _GRAY_ON
             #pragma multi_compile_local _ _LINERASPACE_ON
             #pragma multi_compile_local _ _ROTATE_ON
+            #pragma multi_compile __ FILL
+            #pragma multi_compile __ GREY
             
 
             struct appdata_t
@@ -96,8 +97,8 @@ Shader "Hidden/UI/UI-Effect"
             }
         #endif
 
-        #ifdef _GRAY_ON
-            float _GreyFactor;
+        #ifdef GREY
+            float _EffectFactor;
         #endif
 
         #ifdef _ROTATE_ON
@@ -141,12 +142,31 @@ Shader "Hidden/UI/UI-Effect"
                 return OUT;
             }
 
+            fixed4 ApplyColorEffect(half4 color, half4 factor)
+            {
+            #ifdef FILL
+                color.rgb = lerp(color.rgb, factor.rgb, factor.a);
+            #else
+                color.rgb = lerp(color.rgb, color.rgb * factor.rgb, factor.a);
+            #endif
+                return color;
+            }
+
+            fixed4 ApplyToneEffect(fixed4 color)
+            {
+            #ifdef GREY
+                color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
+            #endif
+                return color;
+            }
+
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd);
 
-                //TODO 处理outline和shadow的颜色
-                color.rgb = lerp(color.rgb, color.rgb * IN.color.rgb, IN.color.a);
+                color = ApplyColorEffect(color, IN.color);
+                color = ApplyToneEffect(color);
+                
 
             #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
@@ -156,9 +176,7 @@ Shader "Hidden/UI/UI-Effect"
                 clip(color.a - 0.001);
             #endif
 
-            #ifdef _GRAY_ON
-                color.rgb = lerp(color.rgb, Luminance(color.rgb), _GreyFactor);
-            #endif
+                
 
             #ifdef _FADELOOP_ON
                 ApplyFadeLoop(color.a);
