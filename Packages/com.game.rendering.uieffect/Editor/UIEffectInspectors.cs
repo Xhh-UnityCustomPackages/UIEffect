@@ -29,6 +29,7 @@ namespace Game.Core.UIEffect.Editor
             {
                 return;
             }
+
             _currentProperty = currentProperty;
 
             // List<FieldInfo> fieldInfoList;
@@ -46,8 +47,9 @@ namespace Game.Core.UIEffect.Editor
                 do
                 {
                     FillPropertiesList(currentProperty);
-                } while (currentProperty.NextVisible(false) && !currentProperty.propertyPath.EndsWith("]"));//可能会访问到下个ArrayElement元素 所以加个限制
+                } while (currentProperty.NextVisible(false) && !currentProperty.propertyPath.EndsWith("]")); //可能会访问到下个ArrayElement元素 所以加个限制
             }
+
             DrawerInitialized = true;
         }
 
@@ -60,12 +62,25 @@ namespace Game.Core.UIEffect.Editor
 
         public void DrawInspector(SerializedProperty currentProperty, BaseUIEffect uiEffect)
         {
-            Initialization(currentProperty, uiEffect);
-            // if (!DrawBase(currentProperty, feedback))
-            // {
-            //     DrawContainer(feedback);
-            DrawContents(uiEffect);
-            // }
+            if (uiEffect.HasCustomInspectors)
+            {
+                //使用自定义的Editor去绘制
+                switch (uiEffect)
+                {
+                    case UIGradient:
+                        UIGradient_Editor.DrawInspector(uiEffect as UIGradient);
+                        break;
+                }
+            }
+            else
+            {
+                Initialization(currentProperty, uiEffect);
+                // if (!DrawBase(currentProperty, feedback))
+                // {
+                //     DrawContainer(feedback);
+                DrawContents(uiEffect);
+                // }
+            }
         }
 
         protected virtual void DrawContents(BaseUIEffect feedback)

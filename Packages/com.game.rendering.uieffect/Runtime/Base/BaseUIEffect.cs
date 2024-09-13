@@ -29,7 +29,9 @@ namespace Game.Core.UIEffect
 #if UNITY_EDITOR
         public virtual bool IsExpanded { get; set; }
         public virtual bool HasCustomInspectors => false;
-        public virtual void Reset() { }
+        public virtual void Reset()
+        {
+        }
 #endif
     }
 }

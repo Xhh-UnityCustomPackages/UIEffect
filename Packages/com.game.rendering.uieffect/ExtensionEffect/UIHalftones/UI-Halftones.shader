@@ -1,11 +1,13 @@
-Shader "Hidden/UI/UI-Effect"
+Shader "Hidden/UI/UI-Halftones"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" { }
         _Color ("Tint", Color) = (1, 1, 1, 1)
 
-        _FadeSpeed ("Fade Speed", float) = 1
+        _CircleSize ("Circle Size", Range(0.1, 1)) = 0.5
+        _Offset ("Offset", float) = 0
+        _Pow ("Pow", float) = 0
 
         [HideInInspector] _StencilComp ("Stencil Comparison", Float) = 8
         [HideInInspector] _Stencil ("Stencil ID", Float) = 0
@@ -54,15 +56,8 @@ Shader "Hidden/UI/UI-Effect"
             // Internal Keywords
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
-
-            // -------------------------------------
-            // Material Keywords  为了避免变体管理 先全部设置成 multi_compile_local
-            #pragma multi_compile_local _ _FADELOOP_ON
-            #pragma multi_compile_local _ _LINERASPACE_ON
-            #pragma multi_compile_local _ _ROTATE_ON
-            #pragma multi_compile __ FILL
-            #pragma multi_compile __ GREY
             
+            float _CircleSize, _Offset, _Pow;
 
             struct appdata_t
             {
@@ -87,41 +82,6 @@ Shader "Hidden/UI/UI-Effect"
             float4 _ClipRect;
             float4 _MainTex_ST;
 
-        #ifdef _FADELOOP_ON
-            float _FadeSpeed;
-
-            void ApplyFadeLoop(inout float alpha)
-            {
-                float time = _Time.z * _FadeSpeed;
-                float a = abs(time - floor((time + 1) / 2) * 2);
-                alpha *= a;
-            }
-        #endif
-
-        #ifdef GREY
-            float _EffectFactor;
-        #endif
-
-        #ifdef _ROTATE_ON
-            float _RotateSpeed;
-            float2 _RotateCenter;
-
-            void ApplyRotate(float2 uv, out float2 newUV)
-            {
-                half2 center = half2(0.5, 0.5);
-                // half2 center = _RotateCenter;
-                half2 uvC = uv;
-                half cosAngle = cos(_Time.z * _RotateSpeed);
-                half sinAngle = sin(_Time.z * _RotateSpeed);
-                half2x2 rot = half2x2(cosAngle, -sinAngle, sinAngle, cosAngle);
-                uvC -= center;
-                newUV = mul(rot, uvC);
-                newUV += center;
-            }
-        #endif
-
-            
-
             v2f vert(appdata_t v)
             {
                 v2f OUT;
@@ -133,42 +93,14 @@ Shader "Hidden/UI/UI-Effect"
                 OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
 
                 OUT.color = v.color * _Color;
-
-            #ifdef _ROTATE_ON
-                ApplyRotate(OUT.texcoord, OUT.texcoord);
-
-            #endif
-
-
+                
                 return OUT;
-            }
-
-            fixed4 ApplyColorEffect(half4 color, half4 factor)
-            {
-            #ifdef FILL
-                color.rgb = lerp(color.rgb, factor.rgb, factor.a);
-            #else
-                color.rgb = lerp(color.rgb, color.rgb * factor.rgb, factor.a);
-            #endif
-                return color;
-            }
-
-            fixed4 ApplyToneEffect(fixed4 color)
-            {
-            #ifdef GREY
-                color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
-            #endif
-                return color;
             }
 
             fixed4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd);
-
-                color = ApplyColorEffect(color, IN.color);
-                color = ApplyToneEffect(color);
                 
-
             #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
             #endif
@@ -177,19 +109,19 @@ Shader "Hidden/UI/UI-Effect"
                 clip(color.a - 0.001);
             #endif
 
-                
-
-            #ifdef _FADELOOP_ON
-                ApplyFadeLoop(color.a);
-            #endif
-
-            #ifdef _LINERASPACE_ON
-                half3 temp = (color.a).xxx;
-                half3 gammaToLinear8 = GammaToLinearSpace(temp);
-                color.a = gammaToLinear8;
-            #endif
-
-                return color;
+                float2 uv = IN.texcoord;
+                // float depth = max(0, IN.vertex.z/IN.vertex.w );
+                // depth*=_ProjectionParams.w;
+                // return  float4(depth.rrr,1);
+                float2 screenUV = frac(IN.vertex.xy / IN.vertex.w * 0.1 * _CircleSize);
+                float2 circleUV = screenUV - 0.5;
+                // return float4(circleUV,0,1);
+                float length = saturate(circleUV.x * circleUV.x + circleUV.y * circleUV.y);
+                length = step(uv.y * _Pow + _Offset, length);
+                // return 1 - length;
+                float halftone = 1 - pow(length, uv.y);
+                // return halftone;
+                return fixed4(halftone * _Color.rgb, halftone);
             }
             ENDCG
         }

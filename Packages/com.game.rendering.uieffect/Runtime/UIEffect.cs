@@ -198,6 +198,8 @@ namespace Game.Core.UIEffect
             {
                 effect.Init(this);
             }
+            SetVerticesDirty();
+            SetMaterialDirty();
         }
 
         protected override void OnDisable()

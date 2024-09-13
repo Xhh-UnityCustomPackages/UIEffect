@@ -7,17 +7,32 @@ namespace Game.Core.UIEffect
 {
     public class GraphicGroup : MonoBehaviour
     {
-        [SerializeField] Color color;
+        [SerializeField] private Color m_Color = Color.white;
 
-        private void OnValidate()
+        public void UpdateColor(Color color)
         {
             //找到所有的Graphic
             var graphics = GetComponentsInChildren<Graphic>();
             for (int i = 0; i < graphics.Length; i++)
             {
-                graphics[i].CrossFadeColor(color, 0.1f, true, true);
+                graphics[i].canvasRenderer.SetColor(color);
             }
         }
+
+        /// <summary>
+        /// This function is called when the behaviour becomes disabled or inactive.
+        /// </summary>
+        private void OnDisable()
+        {
+            UpdateColor(Color.white);
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            UpdateColor(m_Color);
+        }
+#endif
 
     }
 }
