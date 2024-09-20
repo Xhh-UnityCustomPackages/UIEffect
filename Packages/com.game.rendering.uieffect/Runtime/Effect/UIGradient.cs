@@ -11,7 +11,6 @@ namespace Game.Core.UIEffect
 #if UNITY_EDITOR
         public override bool HasCustomInspectors => true;
 
-
         public Direction direction
         {
             get => m_Direction;
@@ -30,21 +29,38 @@ namespace Game.Core.UIEffect
             set => m_Color2 = value;
         }
 
+        public Color color3
+        {
+            get => m_Color3;
+            set => m_Color3 = value;
+        }
+
+        public Color color4
+        {
+            get => m_Color4;
+            set => m_Color4 = value;
+        }
+
         public float offset1
         {
             get => m_Offset1;
             set => m_Offset1 = value;
         }
-        
-        
+
+        public float offset2
+        {
+            get => m_Offset2;
+            set => m_Offset2 = value;
+        }
 #endif
 
         public enum Direction
         {
             Horizontal,
             Vertical,
+
             // Angle,
-            // Diagonal,
+            Split, //四个角分别设置
         }
 
         [SerializeField] private Direction m_Direction;
@@ -55,6 +71,12 @@ namespace Game.Core.UIEffect
         [Tooltip("Color2: Bottom or Right.")] [SerializeField]
         private Color m_Color2 = Color.white;
 
+        [Tooltip("Color3: Left.")] [SerializeField]
+        private Color m_Color3 = Color.white;
+
+        [Tooltip("Color4: Right.")] [SerializeField]
+        private Color m_Color4 = Color.white;
+
         [Tooltip("Gradient rotation.")] [SerializeField] [Range(-180, 180)]
         float m_Rotation;
 
@@ -64,14 +86,14 @@ namespace Game.Core.UIEffect
         [Tooltip("Gradient offset for Diagonal.")] [SerializeField] [Range(-1, 1)]
         float m_Offset2;
 
-        public Vector2 offset2
+        public Vector2 offset
         {
-            get { return new Vector2(m_Offset2, m_Offset1); }
+            get => new Vector2(m_Offset1, m_Offset2);
             set
             {
-                if (Mathf.Approximately(m_Offset1, value.y) && Mathf.Approximately(m_Offset2, value.x)) return;
-                m_Offset1 = value.y;
-                m_Offset2 = value.x;
+                if (Mathf.Approximately(m_Offset1, value.x) && Mathf.Approximately(m_Offset2, value.y)) return;
+                m_Offset1 = value.x;
+                m_Offset2 = value.y;
                 SetVerticesDirty();
             }
         }
@@ -117,19 +139,19 @@ namespace Game.Core.UIEffect
                 // }
                 // else
                 // {
-                normalizedPos = localMatrix * vertex.position + offset2;
+                normalizedPos = localMatrix * vertex.position + offset;
                 // }
 
                 // Interpolate vertex color.
                 Color color = Color.white;
-                // if (direction == Direction.Diagonal)
-                // {
-                //     color = Color.LerpUnclamped(
-                //         Color.LerpUnclamped(m_Color1, m_Color2, normalizedPos.x),
-                //         Color.LerpUnclamped(m_Color3, m_Color4, normalizedPos.x),
-                //         normalizedPos.y);
-                // }
-                // else
+                if (direction == Direction.Split)
+                {
+                    color = Color.LerpUnclamped(
+                        Color.LerpUnclamped(m_Color1, m_Color2, normalizedPos.x),
+                        Color.LerpUnclamped(m_Color3, m_Color4, normalizedPos.x),
+                        normalizedPos.y);
+                }
+                else
                 {
                     color = Color.LerpUnclamped(m_Color2, m_Color1, normalizedPos.y);
                 }
