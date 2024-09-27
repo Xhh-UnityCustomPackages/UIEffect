@@ -39,10 +39,10 @@ namespace Game.Core.UIEffect
 #endif
 
 
-        public static Material GetMaterial(int instanceID, Material baseMaterial, Graphic graphic)
+        public static Material GetMaterial(int hashCode, Material baseMaterial, Graphic graphic)
         {
             MaterialEntry entry;
-            if (!materialMap.TryGetValue(instanceID, out entry))
+            if (!materialMap.TryGetValue(hashCode, out entry))
             {
                 entry = new MaterialEntry()
                 {
@@ -53,9 +53,9 @@ namespace Game.Core.UIEffect
                 };
                 entry.material.shader = Shader.Find("Hidden/UI/UI-Effect");
                 entry.material.shaderKeywords = null;
-                materialMap.Add(instanceID, entry);
+                materialMap.Add(hashCode, entry);
             }
-            // onModifyMaterial(material, graphic);
+
             return entry.material;
         }
 

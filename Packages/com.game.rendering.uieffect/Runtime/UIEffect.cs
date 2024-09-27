@@ -84,8 +84,8 @@ namespace Game.Core.UIEffect
 
             foreach (var effect in m_UIEffects)
             {
-                if (!effect.Active)
-                    continue;
+                if (effect == null) continue;
+                if (!effect.Active) continue;
 
                 if (effect is BaseMeshEffect meshEffect)
                     meshEffect.ModifyMesh(vh, graphic);
@@ -101,6 +101,18 @@ namespace Game.Core.UIEffect
             return GetModifiedMaterial(baseMaterial, graphic);
         }
 
+        int CalcMaterialHash()
+        {
+            s_KeywordList.Sort();
+            int hashCode = 0;
+            foreach (var effect in s_KeywordList)
+            {
+                hashCode = (hashCode * 397) ^ effect.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
         public virtual Material GetModifiedMaterial(Material baseMaterial, Graphic graphic)
         {
             if (!isActiveAndEnabled) return baseMaterial;
@@ -110,8 +122,8 @@ namespace Game.Core.UIEffect
             bool hasMaterialEffect = false;
             foreach (var effect in m_UIEffects)
             {
-                if (!effect.Active)
-                    continue;
+                if (effect == null) continue;
+                if (!effect.Active) continue;
 
                 if (effect is BaseMaterialEffect materialEffect)
                 {
@@ -124,7 +136,7 @@ namespace Game.Core.UIEffect
             if (!hasMaterialEffect)
                 return baseMaterial;
 
-            var modifiedMaterial = MaterialCache.GetMaterial(this.GetInstanceID(), baseMaterial, graphic);
+            var modifiedMaterial = MaterialCache.GetMaterial(CalcMaterialHash(), baseMaterial, graphic);
             SetShaderVariants(modifiedMaterial, s_KeywordList);
             ModifyMaterial(modifiedMaterial);
             return modifiedMaterial;
