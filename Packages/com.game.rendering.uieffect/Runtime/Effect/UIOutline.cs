@@ -8,15 +8,46 @@ namespace Game.Core.UIEffect
     [UIEffectPath("UIOutline")]
     public class UIOutline : BaseMeshEffect
     {
+#if UNITY_EDITOR
+        public override bool HasCustomInspectors => true;
+
+        public OutlineStyle style
+        {
+            get => m_Style;
+            set => m_Style = value;
+        }
+
+        public Color EffectColor
+        {
+            get => m_EffectColor;
+            set => m_EffectColor = value;
+        }
+
+        public Vector2 EffectOffset
+        {
+            get => m_EffectOffset;
+            set => m_EffectOffset = value;
+        }
+
+        public Vector2 EffectOffset2
+        {
+            get => m_EffectOffset2;
+            set => m_EffectOffset2 = value;
+        }
+#endif
+
         public enum OutlineStyle
         {
             Outline,
             Outline8,
+            Outline8Split,
+            Shadow,
         }
 
         [SerializeField] private OutlineStyle m_Style = OutlineStyle.Outline;
-        [SerializeField] private Color m_EffectColor = new Color(0f, 0f, 0f, 0.5f);
-        [SerializeField] private Vector2 m_EffectOffset = new Vector2(1f, 1f);
+        [SerializeField] private Color m_EffectColor = new Color(0f, 0f, 0f, 1f);
+        [SerializeField] private Vector2 m_EffectOffset = new Vector2(2f, -2f);
+        [SerializeField] private Vector2 m_EffectOffset2 = new Vector2(2f, -2f);
         // [SerializeField] private bool m_UseGraphicAlpha = true;
 
         public override void ModifyMesh(VertexHelper vh, Graphic graphic)
@@ -55,18 +86,20 @@ namespace Game.Core.UIEffect
 
             var x = m_EffectOffset.x;
             var y = m_EffectOffset.y;
-            ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, y, alpha);
+
 
             switch (m_Style)
             {
                 // Append Outline.
                 case OutlineStyle.Outline:
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, -y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, -x, y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, -x, -y, alpha);
                     break;
                 // Append Outline8.
                 case OutlineStyle.Outline8:
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, -y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, -x, y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, -x, -y, alpha);
@@ -74,6 +107,23 @@ namespace Game.Core.UIEffect
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, 0, -y, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, 0, alpha);
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, 0, y, alpha);
+                    break;
+                case OutlineStyle.Outline8Split:
+                    var left = x;
+                    var right = y;
+                    var top = m_EffectOffset2.x;
+                    var bottom = m_EffectOffset2.y;
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, left, top, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, left, bottom, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, right, top, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, right, bottom, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, left, 0, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, 0, bottom, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, right, 0, alpha);
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, 0, top, alpha);
+                    break;
+                case OutlineStyle.Shadow:
+                    ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, y, alpha);
                     break;
             }
         }

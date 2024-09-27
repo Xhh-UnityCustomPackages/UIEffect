@@ -70,6 +70,9 @@ namespace Game.Core.UIEffect.Editor
                     case UIGradient:
                         UIGradient_Editor.DrawInspector(uiEffect as UIGradient);
                         break;
+                    case UIOutline:
+                        UIOutline_Editor.DrawInspector(uiEffect as UIOutline);
+                        break;
                 }
             }
             else

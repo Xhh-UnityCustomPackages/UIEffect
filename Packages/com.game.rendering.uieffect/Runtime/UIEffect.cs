@@ -20,11 +20,10 @@ namespace Game.Core.UIEffect
         RectTransform _rectTransform;
         Graphic _graphic;
 
-        public Graphic graphic => _graphic ? _graphic : _graphic = GetComponent<Graphic>();
+        public Graphic graphic => _graphic != null ? _graphic : _graphic = GetComponent<Graphic>();
         public RectTransform rectTransform => _rectTransform ? _rectTransform : _rectTransform = GetComponent<RectTransform>();
 
-        [SerializeReference]
-        public List<BaseUIEffect> m_UIEffects = new();
+        [SerializeReference] public List<BaseUIEffect> m_UIEffects = new();
 
 
         public List<BaseUIEffect> UIEffects => m_UIEffects;
@@ -50,6 +49,7 @@ namespace Game.Core.UIEffect
             {
                 return;
             }
+
             m_UIEffects.RemoveAt(index);
         }
 
@@ -60,6 +60,7 @@ namespace Game.Core.UIEffect
                 if (effect.GetType() == uiEffectType)
                     return null;
             }
+
             BaseUIEffect newUIEffect = (BaseUIEffect)Activator.CreateInstance(uiEffectType);
             newUIEffect.Init(this);
             AddUIEffect(newUIEffect);
@@ -67,7 +68,10 @@ namespace Game.Core.UIEffect
         }
 
         #region IMeshModifier
-        public void ModifyMesh(Mesh mesh) { }
+
+        public void ModifyMesh(Mesh mesh)
+        {
+        }
 
         public void ModifyMesh(VertexHelper vh)
         {
@@ -87,13 +91,16 @@ namespace Game.Core.UIEffect
                     meshEffect.ModifyMesh(vh, graphic);
             }
         }
+
         #endregion IMeshModifier
 
         #region IMaterialModifier
+
         public Material GetModifiedMaterial(Material baseMaterial)
         {
             return GetModifiedMaterial(baseMaterial, graphic);
         }
+
         public virtual Material GetModifiedMaterial(Material baseMaterial, Graphic graphic)
         {
             if (!isActiveAndEnabled) return baseMaterial;
@@ -185,7 +192,6 @@ namespace Game.Core.UIEffect
 #endif
 
 
-
         protected override void OnEnable()
         {
             // connector.OnEnable(graphic);
@@ -196,8 +202,10 @@ namespace Game.Core.UIEffect
 
             foreach (var effect in m_UIEffects)
             {
+                if (effect == null) continue;
                 effect.Init(this);
             }
+
             SetVerticesDirty();
             SetMaterialDirty();
         }
@@ -216,7 +224,5 @@ namespace Game.Core.UIEffect
         {
             graphic.SetMaterialDirty();
         }
-
-
     }
 }
