@@ -32,15 +32,9 @@ namespace Game.Core.UIEffect
         public void AddUIEffect(BaseUIEffect uiEffect)
         {
             m_UIEffects.Add(uiEffect);
-            // Debug.LogError($"m_UIEffects.Length:{m_UIEffects.Count} {uiEffect.GetType().Name}");
-            if (uiEffect is BaseMeshEffect meshEffect)
-            {
-                SetVerticesDirty();
-            }
-            else if (uiEffect is BaseMaterialEffect materialEffect)
-            {
-                SetMaterialDirty();
-            }
+
+            if (uiEffect is BaseMeshEffect meshEffect) SetVerticesDirty();
+            else if (uiEffect is BaseMaterialEffect materialEffect) SetMaterialDirty();
         }
 
         public void RemoveUIEffect(int index)
@@ -206,9 +200,6 @@ namespace Game.Core.UIEffect
 
         protected override void OnEnable()
         {
-            // connector.OnEnable(graphic);
-            // SetVerticesDirty();
-
             if (m_UIEffects == null)
                 return;
 
@@ -225,6 +216,7 @@ namespace Game.Core.UIEffect
         protected override void OnDisable()
         {
             SetVerticesDirty();
+            SetMaterialDirty();
         }
 
         public void SetVerticesDirty()
@@ -235,6 +227,14 @@ namespace Game.Core.UIEffect
         public void SetMaterialDirty()
         {
             graphic.SetMaterialDirty();
+        }
+
+        //当响应动画时
+        protected override void OnDidApplyAnimationProperties()
+        {
+            if (!isActiveAndEnabled) return;
+            SetVerticesDirty();
+            SetMaterialDirty();
         }
     }
 }
