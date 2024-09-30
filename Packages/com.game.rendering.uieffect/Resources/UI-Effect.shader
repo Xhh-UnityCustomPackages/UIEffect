@@ -60,8 +60,8 @@ Shader "Hidden/UI/UI-Effect"
             #pragma multi_compile_local _ _FADELOOP_ON
             #pragma multi_compile_local _ _LINERASPACE_ON
             #pragma multi_compile_local _ _ROTATE_ON
-            #pragma multi_compile __ FILL
-            #pragma multi_compile __ GREY
+            #pragma multi_compile_local _ FILL GREY
+            #pragma multi_compile_local _ DISSOLVE
             
 
             struct appdata_t
@@ -102,6 +102,12 @@ Shader "Hidden/UI/UI-Effect"
             float _EffectFactor;
         #endif
 
+        #ifdef DISSOLVE
+            float4 _DissolveParams;
+            half4 _DissolveColor;
+            sampler2D _DissolveTex;
+        #endif
+
         #ifdef _ROTATE_ON
             float _RotateSpeed;
             float2 _RotateCenter;
@@ -136,39 +142,48 @@ Shader "Hidden/UI/UI-Effect"
 
             #ifdef _ROTATE_ON
                 ApplyRotate(OUT.texcoord, OUT.texcoord);
-
             #endif
-
 
                 return OUT;
             }
 
-            fixed4 ApplyColorEffect(half4 color, half4 factor)
+            half4 ApplyColorEffect(half4 color, half4 factor)
             {
             #ifdef FILL
                 color.rgb = lerp(color.rgb, factor.rgb, factor.a);
+            #elif GREY
+                color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
             #else
                 color.rgb = lerp(color.rgb, color.rgb * factor.rgb, factor.a);
             #endif
                 return color;
             }
 
-            fixed4 ApplyToneEffect(fixed4 color)
+            half4 ApplyTransitionEffect(half4 color, float2 uv)
             {
-            #ifdef GREY
-                color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
+            #ifdef DISSOLVE
+                float alpha = tex2D(_DissolveTex, uv * _DissolveParams.w).a;
+
+                fixed width = _DissolveParams.y / 4;
+                fixed softness = _DissolveParams.z;
+                fixed3 dissolveColor = _DissolveColor;
+                float factor = alpha - _DissolveParams.x * (1 + width) + width;
+                fixed edgeLerp = step(factor, color.a) * saturate((width - factor) * 16 / softness);
+                // color = ApplyColorEffect(color, fixed4(dissolveColor, edgeLerp));
+                color.rgb = lerp(color.rgb, color.rgb * dissolveColor.rgb, edgeLerp);
+                color.a *= saturate((factor) * 32 / softness);
             #endif
                 return color;
             }
 
-            fixed4 frag(v2f IN) : SV_Target
+            half4 frag(v2f IN) : SV_Target
             {
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd);
 
+                // Dissolve
+                color = ApplyTransitionEffect(color, IN.texcoord);
                 color = ApplyColorEffect(color, IN.color);
-                color = ApplyToneEffect(color);
                 
-
             #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
             #endif
@@ -176,8 +191,6 @@ Shader "Hidden/UI/UI-Effect"
             #ifdef UNITY_UI_ALPHACLIP
                 clip(color.a - 0.001);
             #endif
-
-                
 
             #ifdef _FADELOOP_ON
                 ApplyFadeLoop(color.a);

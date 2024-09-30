@@ -198,7 +198,7 @@ namespace Game.Core.UIEffect.Editor
                 return;
             }
 
-            m_PickedUIEffectIsExpanded = m_PickedUIEffect.IsExpanded;
+            m_PickedUIEffectIsExpanded = m_PickedUIEffect.IsExpanded && m_PickedUIEffect.Active;
 
             Rect headerRect = UIEffectStyling.DrawHeader(
                 ref m_PickedUIEffectIsExpanded,

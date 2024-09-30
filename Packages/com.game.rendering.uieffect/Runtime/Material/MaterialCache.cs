@@ -1,17 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using System.Text;
 
 namespace Game.Core.UIEffect
 {
     public class MaterialCache
     {
-        static Dictionary<int, MaterialEntry> materialMap = new Dictionary<int, MaterialEntry>();
+        private static Dictionary<int, MaterialEntry> materialMap = new();
+        private static readonly StringBuilder s_StringBuilder = new();
 
         private class MaterialEntry
         {
             public Material material;
+            public int hashCode;
             // public int referenceCount;
 
             public void Release()
@@ -39,7 +42,7 @@ namespace Game.Core.UIEffect
 #endif
 
 
-        public static Material GetMaterial(int hashCode, Material baseMaterial, Graphic graphic)
+        public static Material GetMaterial(int hashCode, Material baseMaterial, Graphic graphic, List<string> keywords)
         {
             MaterialEntry entry;
             if (!materialMap.TryGetValue(hashCode, out entry))
@@ -50,14 +53,38 @@ namespace Game.Core.UIEffect
                     {
                         hideFlags = HideFlags.HideAndDontSave,
                     },
+                    hashCode = hashCode
                 };
                 entry.material.shader = Shader.Find("Hidden/UI/UI-Effect");
                 entry.material.shaderKeywords = null;
+                SetShaderVariants(entry.material, keywords);
                 materialMap.Add(hashCode, entry);
             }
 
             return entry.material;
         }
 
+        private static void SetShaderVariants(Material newMaterial, List<string> variants)
+        {
+            var keywords = variants
+                .Select(x => x.ToString().ToUpper())
+                // .Concat(newMaterial.shaderKeywords)//加上原来的
+                .Distinct()
+                .ToArray();
+
+            newMaterial.shaderKeywords = keywords;
+
+            // Add variant name
+            s_StringBuilder.Clear();
+            s_StringBuilder.Length = 0;
+            s_StringBuilder.Append(newMaterial.shader.name);
+            foreach (var keyword in keywords)
+            {
+                s_StringBuilder.Append("|");
+                s_StringBuilder.Append(keyword);
+            }
+
+            newMaterial.name = s_StringBuilder.ToString();
+        }
     }
 }

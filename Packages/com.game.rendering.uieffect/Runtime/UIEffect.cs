@@ -14,7 +14,6 @@ namespace Game.Core.UIEffect
     [DisallowMultipleComponent]
     public class UIEffect : UIBehaviour, IMeshModifier, IMaterialModifier
     {
-        private static readonly StringBuilder s_StringBuilder = new StringBuilder();
         private static List<string> s_KeywordList = new List<string>();
 
         RectTransform _rectTransform;
@@ -27,6 +26,8 @@ namespace Game.Core.UIEffect
 
 
         public List<BaseUIEffect> UIEffects => m_UIEffects;
+        private Material m_ModifMaterial;
+        private int m_MaterialHashCode;
 
 
         public void AddUIEffect(BaseUIEffect uiEffect)
@@ -128,12 +129,28 @@ namespace Game.Core.UIEffect
             }
 
             if (!hasMaterialEffect)
-                return baseMaterial;
+            {
+                if (m_ModifMaterial != null)
+                {
+                    if (Application.isPlaying)
+                        Destroy(m_ModifMaterial);
+                    else
+                        DestroyImmediate(m_ModifMaterial);
+                }
 
-            var modifiedMaterial = MaterialCache.GetMaterial(CalcMaterialHash(), baseMaterial, graphic);
-            SetShaderVariants(modifiedMaterial, s_KeywordList);
-            ModifyMaterial(modifiedMaterial);
-            return modifiedMaterial;
+                return baseMaterial;
+            }
+
+            int hashCode = CalcMaterialHash();
+            if (m_ModifMaterial == null || m_MaterialHashCode != hashCode)
+            {
+                m_MaterialHashCode = hashCode;
+                var modifiedMaterial = MaterialCache.GetMaterial(hashCode, baseMaterial, graphic, s_KeywordList);
+                m_ModifMaterial = Instantiate(modifiedMaterial);
+            }
+
+            ModifyMaterial(m_ModifMaterial);
+            return m_ModifMaterial;
         }
 
         protected void ModifyMaterial(Material newMaterial)
@@ -148,29 +165,6 @@ namespace Game.Core.UIEffect
                     materialEffect.ModifyMaterial(newMaterial);
                 }
             }
-        }
-
-        protected void SetShaderVariants(Material newMaterial, List<string> variants)
-        {
-            var keywords = variants
-                .Select(x => x.ToString().ToUpper())
-                // .Concat(newMaterial.shaderKeywords)//加上原来的
-                .Distinct()
-                .ToArray();
-
-            newMaterial.shaderKeywords = keywords;
-
-            // Add variant name
-            s_StringBuilder.Clear();
-            s_StringBuilder.Length = 0;
-            s_StringBuilder.Append(newMaterial.shader.name);
-            foreach (var keyword in keywords)
-            {
-                s_StringBuilder.Append("|");
-                s_StringBuilder.Append(keyword);
-            }
-
-            newMaterial.name = s_StringBuilder.ToString();
         }
 
         #endregion IMaterialModifier
