@@ -144,7 +144,7 @@ namespace Game.Core.UIEffect
 
                 // Interpolate vertex color.
                 Color color = Color.white;
-                if (direction == Direction.Split)
+                if (m_Direction == Direction.Split)
                 {
                     color = Color.LerpUnclamped(
                         Color.LerpUnclamped(m_Color1, m_Color2, normalizedPos.x),
