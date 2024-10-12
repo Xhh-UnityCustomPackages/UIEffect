@@ -39,6 +39,12 @@ namespace Game.Core.UIEffect
             }
         }
 
+        public float effectFactor
+        {
+            get { return m_EffectFactor; }
+            set { m_EffectFactor = value; }
+        }
+
         static class ShaderConstants
         {
             internal static readonly int DissolveParams = Shader.PropertyToID("_DissolveParams");

@@ -29,6 +29,19 @@ namespace Game.Core.UIEffect
         private Material m_ModifMaterial;
         private int m_MaterialHashCode;
 
+        public T GetUIEffect<T>() where T : BaseUIEffect
+        {
+            foreach (var effect in m_UIEffects)
+            {
+                if (effect is T t)
+                {
+                    return t;
+                }
+            }
+
+            return null;
+        }
+
 
         public void AddUIEffect(BaseUIEffect uiEffect)
         {
