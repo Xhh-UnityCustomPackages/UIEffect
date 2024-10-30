@@ -9,6 +9,17 @@ namespace Game.Core.UIEffect
     {
         [SerializeField] private Color m_Color = Color.white;
 
+
+        public Color Color
+        {
+            get => m_Color;
+            set 
+            {
+                m_Color = value;
+                UpdateColor(m_Color);
+            }
+        }
+
         public void UpdateColor(Color color)
         {
             //找到所有的Graphic

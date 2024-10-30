@@ -68,8 +68,9 @@ namespace Game.Core.UIEffect
             {
                 var start = s_Verts.Count - _graphicVertexCount;
                 var end = s_Verts.Count;
-
-                ApplyOutline(s_Verts, m_EffectColor, ref start, ref end, false);
+                var targetColor = m_EffectColor;
+                targetColor.a *= graphic.color.a;//乘以原始定点色A通道
+                ApplyOutline(s_Verts, targetColor, ref start, ref end, false);
             }
 
             vh.Clear();
