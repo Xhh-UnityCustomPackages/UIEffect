@@ -151,6 +151,7 @@ Shader "Hidden/UI/UI-Effect"
             {
             #ifdef FILL
                 color.rgb = lerp(color.rgb, factor.rgb, factor.a);
+                color.a = color.a * factor.a;
             #elif GREY
                 color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
             #else
