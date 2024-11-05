@@ -32,9 +32,5 @@ namespace Game.Core.UIEffect
         }
 
         public abstract void ModifyMesh(VertexHelper vh, Graphic graphic);
-
-
-
-
     }
 }

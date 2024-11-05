@@ -90,6 +90,24 @@ namespace Game.Core.UIEffect
         {
             if (!isActiveAndEnabled) return;
 
+            var rect = rectTransform.rect;
+
+            // Calculate vertex position.
+            var vertex = default(UIVertex);
+            var count = vh.currentVertCount;
+            for (var i = 0; i < count; i++)
+            {
+                vh.PopulateUIVertex(ref vertex, i);
+
+                float x = Mathf.Clamp01(vertex.position.x / rect.width + 0.5f);
+                float y = Mathf.Clamp01(vertex.position.y / rect.height + 0.5f);
+
+                //等于记录图集UV 和原始UV
+                vertex.uv0 = new Vector4(vertex.uv0.x, vertex.uv0.y, x, y);
+
+                vh.SetUIVertex(vertex, i);
+            }
+
             foreach (var effect in m_UIEffects)
             {
                 if (effect == null) continue;

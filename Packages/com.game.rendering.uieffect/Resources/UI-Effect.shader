@@ -68,7 +68,7 @@ Shader "Hidden/UI/UI-Effect"
             {
                 float4 vertex : POSITION;
                 float4 color : COLOR;
-                float2 texcoord : TEXCOORD0;
+                float4 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -76,7 +76,7 @@ Shader "Hidden/UI/UI-Effect"
             {
                 float4 vertex : SV_POSITION;
                 fixed4 color : COLOR;
-                float2 texcoord : TEXCOORD0;
+                float4 texcoord : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -126,8 +126,6 @@ Shader "Hidden/UI/UI-Effect"
             }
         #endif
 
-            
-
             v2f vert(appdata_t v)
             {
                 v2f OUT;
@@ -136,12 +134,13 @@ Shader "Hidden/UI/UI-Effect"
                 OUT.worldPosition = v.vertex;
                 OUT.vertex = UnityObjectToClipPos(OUT.worldPosition);
 
-                OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
+                OUT.texcoord.xy = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
+                OUT.texcoord.zw = v.texcoord.zw;
 
                 OUT.color = v.color * _Color;
 
             #ifdef _ROTATE_ON
-                ApplyRotate(OUT.texcoord, OUT.texcoord);
+                ApplyRotate(OUT.texcoord.xy, OUT.texcoord.xy);
             #endif
 
                 return OUT;
@@ -179,10 +178,13 @@ Shader "Hidden/UI/UI-Effect"
 
             half4 frag(v2f IN) : SV_Target
             {
-                half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd);
+                float2 uv = IN.texcoord.xy;
+                float2 originUV = IN.texcoord.zw;
+                // return half4(uv,0,1);
+                half4 color = (tex2D(_MainTex, uv) + _TextureSampleAdd);
 
                 // Dissolve
-                color = ApplyTransitionEffect(color, IN.texcoord);
+                color = ApplyTransitionEffect(color, originUV);
                 color = ApplyColorEffect(color, IN.color);
                 
             #ifdef UNITY_UI_CLIP_RECT

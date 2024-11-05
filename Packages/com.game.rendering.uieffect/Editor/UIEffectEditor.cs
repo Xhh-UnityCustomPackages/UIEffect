@@ -60,7 +60,6 @@ namespace Game.Core.UIEffect.Editor
             PrepareUIEffectTypeList();
 
             m_CachedGUI = false;
-
         }
 
 
