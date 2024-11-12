@@ -19,7 +19,7 @@ namespace Game.Core.UIEffect
             internal static readonly int RotateCenter = Shader.PropertyToID("_RotateCenter");
         }
 
-        public override void ModifyMaterial(Material newMaterial)
+        public override void UpdateMaterialParams(Material newMaterial)
         {
             newMaterial.SetFloat(ShaderConstants.RotateSpeed, m_RotateSpeed);
             // newMaterial.SetVector(ShaderConstants.RotateCenter, m_RotateCenter);

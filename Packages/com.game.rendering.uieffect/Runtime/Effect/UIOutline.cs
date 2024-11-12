@@ -187,8 +187,10 @@ namespace Game.Core.UIEffect
 #if UNITY_EDITOR
         public override void Reset()
         {
+            m_Style = OutlineStyle.Outline;
             m_EffectColor = new Color(0f, 0f, 0f, 0.5f);
             m_EffectOffset = new Vector2(1f, 1f);
+            m_EffectOffset2 = new Vector2(1f, 1f);
         }
 #endif
     }

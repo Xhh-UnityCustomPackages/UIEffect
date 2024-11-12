@@ -17,7 +17,7 @@ namespace Game.Core.UIEffect
             internal static readonly int GreyFactor = Shader.PropertyToID("_EffectFactor");
         }
 
-        public override void ModifyMaterial(Material newMaterial)
+        public override void UpdateMaterialParams(Material newMaterial)
         {
             newMaterial.SetFloat(ShaderConstants.GreyFactor, m_GreyIntensity);
         }

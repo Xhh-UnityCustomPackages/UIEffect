@@ -42,7 +42,11 @@ namespace Game.Core.UIEffect
         public float effectFactor
         {
             get { return m_EffectFactor; }
-            set { m_EffectFactor = value; }
+            set
+            {
+                m_EffectFactor = value;
+                SetMaterialParamsDirty();
+            }
         }
 
         static class ShaderConstants
@@ -52,7 +56,7 @@ namespace Game.Core.UIEffect
             internal static readonly int DissolveTex = Shader.PropertyToID("_DissolveTex");
         }
 
-        public override void ModifyMaterial(Material newMaterial)
+        public override void UpdateMaterialParams(Material newMaterial)
         {
             newMaterial.SetVector(ShaderConstants.DissolveParams, new Vector4(m_EffectFactor, m_Width, m_Softness, m_DissolveTexTilling));
             newMaterial.SetColor(ShaderConstants.DissolveColor, m_Color);

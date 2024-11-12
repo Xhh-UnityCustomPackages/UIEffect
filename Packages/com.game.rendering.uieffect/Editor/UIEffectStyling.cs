@@ -80,7 +80,7 @@ namespace Game.Core.UIEffect.Editor
             EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
         }
 
-        static public Rect DrawHeader(ref bool expanded, ref bool activeField, string title, System.Action<GenericMenu> fillGenericMenu, UIEffect host)
+        static public Rect DrawHeader(ref bool expanded, ref BaseUIEffect uiEffect, string title, System.Action<GenericMenu> fillGenericMenu, UIEffect host)
         {
             var e = Event.current;
 
@@ -127,7 +127,7 @@ namespace Game.Core.UIEffect.Editor
 
             // Active checkbox
             EditorGUI.BeginChangeCheck();
-            activeField = GUI.Toggle(_toggleRect, activeField, GUIContent.none, SmallTickbox);
+            uiEffect.Active = GUI.Toggle(_toggleRect, uiEffect.Active, GUIContent.none, SmallTickbox);
             if (EditorGUI.EndChangeCheck())
             {
                 host.SetVerticesDirty();

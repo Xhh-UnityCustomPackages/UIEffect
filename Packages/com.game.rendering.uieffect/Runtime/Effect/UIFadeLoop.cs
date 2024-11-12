@@ -16,7 +16,7 @@ namespace Game.Core.UIEffect
             internal static readonly int FadeSpeed = Shader.PropertyToID("_FadeSpeed");
         }
 
-        public override void ModifyMaterial(Material newMaterial)
+        public override void UpdateMaterialParams(Material newMaterial)
         {
             newMaterial.SetFloat(ShaderConstants.FadeSpeed, m_FadeSpeed);
         }

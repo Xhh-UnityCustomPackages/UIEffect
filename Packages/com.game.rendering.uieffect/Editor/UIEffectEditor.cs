@@ -201,7 +201,7 @@ namespace Game.Core.UIEffect.Editor
 
             Rect headerRect = UIEffectStyling.DrawHeader(
                 ref m_PickedUIEffectIsExpanded,
-                ref m_PickedUIEffect.Active,
+                ref m_PickedUIEffect,
                 m_PickedUIEffect.GetType().Name,
                 (GenericMenu menu) =>
                 {

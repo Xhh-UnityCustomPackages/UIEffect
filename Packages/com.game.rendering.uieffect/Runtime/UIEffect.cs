@@ -57,7 +57,7 @@ namespace Game.Core.UIEffect
             {
                 return;
             }
-
+            m_UIEffects[index].OnDisable();
             m_UIEffects.RemoveAt(index);
         }
 
@@ -193,6 +193,7 @@ namespace Game.Core.UIEffect
 
                 if (effect is BaseMaterialEffect materialEffect)
                 {
+                    materialEffect.ModifierMaterial = newMaterial;
                     materialEffect.ModifyMaterial(newMaterial);
                 }
             }

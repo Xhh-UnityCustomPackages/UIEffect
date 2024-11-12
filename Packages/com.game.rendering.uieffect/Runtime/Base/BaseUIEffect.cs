@@ -16,22 +16,41 @@ namespace Game.Core.UIEffect
         public Graphic graphic => m_UIEffect.graphic;
         protected RectTransform rectTransform => m_UIEffect.rectTransform;
         protected bool isActiveAndEnabled => m_UIEffect != null ? m_UIEffect.isActiveAndEnabled : false;
-
-        public bool Active = true;
+        protected bool m_Active = true;
+        public bool Active
+        {
+            get => m_Active;
+            set
+            {
+                var oldValue = m_Active;
+                m_Active = value;
+                if (oldValue == true && m_Active == false)
+                {
+                    OnDisable();
+                }else if(oldValue == false && m_Active==true)
+                {
+                    OnEnable();
+                }
+            }
+        }
+        
         [NonSerialized] protected UIEffect m_UIEffect;
 
         public void Init(UIEffect uiEffect)
         {
             m_UIEffect = uiEffect;
+            OnInit();
         }
+
+        public virtual void OnInit() { }
+        public virtual void OnEnable() { }
+        public virtual void OnDisable() { }
 
 
 #if UNITY_EDITOR
         public virtual bool IsExpanded { get; set; }
         public virtual bool HasCustomInspectors => false;
-        public virtual void Reset()
-        {
-        }
+        public virtual void Reset() { }
 #endif
     }
 }

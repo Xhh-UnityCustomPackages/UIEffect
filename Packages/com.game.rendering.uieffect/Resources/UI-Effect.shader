@@ -62,6 +62,7 @@ Shader "Hidden/UI/UI-Effect"
             #pragma multi_compile_local _ _ROTATE_ON
             #pragma multi_compile_local _ FILL GREY
             #pragma multi_compile_local _ DISSOLVE
+            #pragma multi_compile_local _ UISHINY
             
 
             struct appdata_t
@@ -107,6 +108,46 @@ Shader "Hidden/UI/UI-Effect"
             half4 _DissolveColor;
             sampler2D _DissolveTex;
         #endif
+
+        #ifdef UISHINY
+            float4 _ShinyParams1, _ShinyParams2;
+
+        #define ShinyEffectFactor   _ShinyParams1.x
+        #define ShinyWidth          _ShinyParams1.y
+        #define ShinySoftness       _ShinyParams1.z
+        #define ShinyBrightness     _ShinyParams1.w
+        #define ShinyGloss          _ShinyParams2.x
+        #define ShinyRotation       _ShinyParams2.y
+            // Apply shiny effect.
+            half4 ApplyShinyEffect(half4 color, float2 newUV)
+            {
+                half nomalizedPos = newUV.x;
+                // fixed4 param1 = tex2D(_ParamTex, float2(0.25, shinyParam.y));
+                // fixed4 param2 = tex2D(_ParamTex, float2(0.75, shinyParam.y));
+                half location = ShinyEffectFactor;//param1.x * 2 - 0.5;
+                half normalized = 1 - saturate(abs((nomalizedPos - location) / ShinyWidth));
+                half shinePower = smoothstep(0, ShinySoftness, normalized);
+                half3 reflectColor = lerp(half3(1, 1, 1), color.rgb * 7, ShinyGloss);
+
+                color.rgb += color.a * (shinePower / 2) * ShinyBrightness * reflectColor;
+
+                return color;
+            }
+
+            float2 ApplyRotateShiny(float2 uv)
+            {
+                half2 center = half2(0.5, 0.5);
+                // half2 center = _RotateCenter;
+                half2 uvC = uv;
+                half cosAngle = cos(ShinyRotation);
+                half sinAngle = sin(ShinyRotation);
+                half2x2 rot = half2x2(cosAngle, -sinAngle, sinAngle, cosAngle);
+                uvC -= center;
+                float2 newUV = mul(rot, uvC);
+                newUV += center;
+                return newUV;
+            }
+            #endif
 
         #ifdef _ROTATE_ON
             float _RotateSpeed;
@@ -186,6 +227,10 @@ Shader "Hidden/UI/UI-Effect"
                 // Dissolve
                 color = ApplyTransitionEffect(color, originUV);
                 color = ApplyColorEffect(color, IN.color);
+
+            #ifdef UISHINY
+                color = ApplyShinyEffect(color, ApplyRotateShiny(originUV));
+            #endif
                 
             #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
