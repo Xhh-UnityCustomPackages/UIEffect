@@ -128,6 +128,7 @@ namespace Game.Core.UIEffect
             newMaterial.SetVector(ShaderConstants._ShinyParams2, new Vector4(m_Gloss, m_Rotation, 0, 0));
         }
 
+#if UNITY_EDITOR
         public override void Reset()
         {
             m_Rotation = 0;
@@ -136,5 +137,6 @@ namespace Game.Core.UIEffect
             m_Brightness = 1f;
             m_Gloss = 1;
         }
+#endif
     }
 }

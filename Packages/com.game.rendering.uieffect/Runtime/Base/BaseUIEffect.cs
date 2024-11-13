@@ -16,7 +16,7 @@ namespace Game.Core.UIEffect
         public Graphic graphic => m_UIEffect.graphic;
         protected RectTransform rectTransform => m_UIEffect.rectTransform;
         protected bool isActiveAndEnabled => m_UIEffect != null ? m_UIEffect.isActiveAndEnabled : false;
-        protected bool m_Active = true;
+        [SerializeField] protected bool m_Active = true;
         public bool Active
         {
             get => m_Active;

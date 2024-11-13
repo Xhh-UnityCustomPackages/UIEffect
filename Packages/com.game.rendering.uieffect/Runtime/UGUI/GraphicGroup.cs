@@ -73,7 +73,7 @@ namespace Game.Core.UIEffect
         public void UpdateColor(Color color)
         {
             //找到所有的Graphic
-            var graphics = GetComponentsInChildren<Graphic>();
+            var graphics = GetComponentsInChildren<Graphic>(true);
             if (m_Mode == Mode.Single)
             {
                 for (int i = 0; i < graphics.Length; i++)
