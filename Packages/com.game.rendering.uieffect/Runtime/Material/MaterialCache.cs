@@ -44,7 +44,6 @@ namespace Game.Core.UIEffect
 
         public static Material GetMaterial(Hash128 hashCode, Material baseMaterial, Graphic graphic, List<string> keywords)
         {
-            Debug.LogError(hashCode.ToString());
             MaterialEntry entry;
             if (!materialMap.TryGetValue(hashCode, out entry))
             {
