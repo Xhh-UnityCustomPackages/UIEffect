@@ -8,13 +8,13 @@ namespace Game.Core.UIEffect
 {
     public class MaterialCache
     {
-        private static Dictionary<int, MaterialEntry> materialMap = new();
+        private static Dictionary<Hash128, MaterialEntry> materialMap = new();
         private static readonly StringBuilder s_StringBuilder = new();
 
         private class MaterialEntry
         {
             public Material material;
-            public int hashCode;
+            public Hash128 hashCode;
             // public int referenceCount;
 
             public void Release()
@@ -42,8 +42,9 @@ namespace Game.Core.UIEffect
 #endif
 
 
-        public static Material GetMaterial(int hashCode, Material baseMaterial, Graphic graphic, List<string> keywords)
+        public static Material GetMaterial(Hash128 hashCode, Material baseMaterial, Graphic graphic, List<string> keywords)
         {
+            Debug.LogError(hashCode.ToString());
             MaterialEntry entry;
             if (!materialMap.TryGetValue(hashCode, out entry))
             {
@@ -68,7 +69,7 @@ namespace Game.Core.UIEffect
         {
             var keywords = variants
                 .Select(x => x.ToString().ToUpper())
-                // .Concat(newMaterial.shaderKeywords)//加上原来的
+                .Concat(newMaterial.shaderKeywords) //加上原来的
                 .Distinct()
                 .ToArray();
 

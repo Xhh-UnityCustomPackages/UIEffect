@@ -7,11 +7,11 @@ Shader "Hidden/UI/UI-Effect"
 
         _FadeSpeed ("Fade Speed", float) = 1
 
-        [HideInInspector] _StencilComp ("Stencil Comparison", Float) = 8
-        [HideInInspector] _Stencil ("Stencil ID", Float) = 0
-        [HideInInspector] _StencilOp ("Stencil Operation", Float) = 0
-        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 255
-        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 255
+        [Enum(UnityEngine.Rendering.CompareFunction)] _StencilComp ("Stencil Comparison", Float) = 3
+        [Enum(UnityEngine.Rendering.StencilOp)] _StencilOp ("Stencil Operation", Float) = 0
+        [HideInInspector] _Stencil ("Stencil ID", Float) = 1
+        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 1
+        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 0
 
         [HideInInspector] _ColorMask ("Color Mask", Float) = 15
 
@@ -21,7 +21,10 @@ Shader "Hidden/UI/UI-Effect"
 
     SubShader
     {
-        Tags { "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" "PreviewType" = "Plane" "CanUseSpriteAtlas" = "True" }
+        Tags
+        {
+            "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" "PreviewType" = "Plane" "CanUseSpriteAtlas" = "True"
+        }
 
         Stencil
         {
@@ -52,8 +55,8 @@ Shader "Hidden/UI/UI-Effect"
 
             // -------------------------------------
             // Internal Keywords
-            #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
-            #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+            #pragma multi_compile_local_fragment _ UNITY_UI_CLIP_RECT
+            #pragma multi_compile_local_fragment _ UNITY_UI_ALPHACLIP
 
             // -------------------------------------
             // Material Keywords  为了避免变体管理 先全部设置成 multi_compile_local
@@ -63,7 +66,7 @@ Shader "Hidden/UI/UI-Effect"
             #pragma multi_compile_local _ FILL GREY
             #pragma multi_compile_local _ DISSOLVE
             #pragma multi_compile_local _ UISHINY
-            
+
 
             struct appdata_t
             {
@@ -88,7 +91,7 @@ Shader "Hidden/UI/UI-Effect"
             float4 _ClipRect;
             float4 _MainTex_ST;
 
-        #ifdef _FADELOOP_ON
+            #ifdef _FADELOOP_ON
             float _FadeSpeed;
 
             void ApplyFadeLoop(inout float alpha)
@@ -97,34 +100,34 @@ Shader "Hidden/UI/UI-Effect"
                 float a = abs(time - floor((time + 1) / 2) * 2);
                 alpha *= a;
             }
-        #endif
+            #endif
 
-        #ifdef GREY
+            #ifdef GREY
             float _EffectFactor;
-        #endif
+            #endif
 
-        #ifdef DISSOLVE
+            #ifdef DISSOLVE
             float4 _DissolveParams;
             half4 _DissolveColor;
             sampler2D _DissolveTex;
-        #endif
+            #endif
 
-        #ifdef UISHINY
+            #ifdef UISHINY
             float4 _ShinyParams1, _ShinyParams2;
 
-        #define ShinyEffectFactor   _ShinyParams1.x
-        #define ShinyWidth          _ShinyParams1.y
-        #define ShinySoftness       _ShinyParams1.z
-        #define ShinyBrightness     _ShinyParams1.w
-        #define ShinyGloss          _ShinyParams2.x
-        #define ShinyRotation       _ShinyParams2.y
+            #define ShinyEffectFactor   _ShinyParams1.x
+            #define ShinyWidth          _ShinyParams1.y
+            #define ShinySoftness       _ShinyParams1.z
+            #define ShinyBrightness     _ShinyParams1.w
+            #define ShinyGloss          _ShinyParams2.x
+            #define ShinyRotation       _ShinyParams2.y
             // Apply shiny effect.
             half4 ApplyShinyEffect(half4 color, float2 newUV)
             {
                 half nomalizedPos = newUV.x;
                 // fixed4 param1 = tex2D(_ParamTex, float2(0.25, shinyParam.y));
                 // fixed4 param2 = tex2D(_ParamTex, float2(0.75, shinyParam.y));
-                half location = ShinyEffectFactor;//param1.x * 2 - 0.5;
+                half location = ShinyEffectFactor; //param1.x * 2 - 0.5;
                 half normalized = 1 - saturate(abs((nomalizedPos - location) / ShinyWidth));
                 half shinePower = smoothstep(0, ShinySoftness, normalized);
                 half3 reflectColor = lerp(half3(1, 1, 1), color.rgb * 7, ShinyGloss);
@@ -149,7 +152,7 @@ Shader "Hidden/UI/UI-Effect"
             }
             #endif
 
-        #ifdef _ROTATE_ON
+            #ifdef _ROTATE_ON
             float _RotateSpeed;
             float2 _RotateCenter;
 
@@ -165,7 +168,7 @@ Shader "Hidden/UI/UI-Effect"
                 newUV = mul(rot, uvC);
                 newUV += center;
             }
-        #endif
+            #endif
 
             v2f vert(appdata_t v)
             {
@@ -180,29 +183,29 @@ Shader "Hidden/UI/UI-Effect"
 
                 OUT.color = v.color * _Color;
 
-            #ifdef _ROTATE_ON
+                #ifdef _ROTATE_ON
                 ApplyRotate(OUT.texcoord.xy, OUT.texcoord.xy);
-            #endif
+                #endif
 
                 return OUT;
             }
 
             half4 ApplyColorEffect(half4 color, half4 factor)
             {
-            #ifdef FILL
+                #ifdef FILL
                 color.rgb = lerp(color.rgb, factor.rgb, factor.a);
                 color.a = color.a * factor.a;
-            #elif GREY
+                #elif GREY
                 color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
-            #else
+                #else
                 color.rgb = lerp(color.rgb, color.rgb * factor.rgb, factor.a);
-            #endif
+                #endif
                 return color;
             }
 
             half4 ApplyTransitionEffect(half4 color, float2 uv)
             {
-            #ifdef DISSOLVE
+                #ifdef DISSOLVE
                 float alpha = tex2D(_DissolveTex, uv * _DissolveParams.w).a;
 
                 fixed width = _DissolveParams.y / 4;
@@ -213,7 +216,7 @@ Shader "Hidden/UI/UI-Effect"
                 // color = ApplyColorEffect(color, fixed4(dissolveColor, edgeLerp));
                 color.rgb = lerp(color.rgb, color.rgb * dissolveColor.rgb, edgeLerp);
                 color.a *= saturate((factor) * 32 / softness);
-            #endif
+                #endif
                 return color;
             }
 
@@ -228,27 +231,29 @@ Shader "Hidden/UI/UI-Effect"
                 color = ApplyTransitionEffect(color, originUV);
                 color = ApplyColorEffect(color, IN.color);
 
-            #ifdef UISHINY
+                #ifdef UISHINY
                 color = ApplyShinyEffect(color, ApplyRotateShiny(originUV));
-            #endif
-                
-            #ifdef UNITY_UI_CLIP_RECT
+                #endif
+
+                #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
-            #endif
+                #endif
 
-            #ifdef UNITY_UI_ALPHACLIP
+                #ifdef UNITY_UI_ALPHACLIP
                 clip(color.a - 0.001);
-            #endif
+                #endif
 
-            #ifdef _FADELOOP_ON
+                #ifdef _FADELOOP_ON
                 ApplyFadeLoop(color.a);
-            #endif
+                #endif
 
-            #ifdef _LINERASPACE_ON
+                #ifdef _LINERASPACE_ON
                 half3 temp = (color.a).xxx;
                 half3 gammaToLinear8 = GammaToLinearSpace(temp);
                 color.a = gammaToLinear8;
-            #endif
+                #endif
+
+                color.a *= IN.color.a;
 
                 return color;
             }

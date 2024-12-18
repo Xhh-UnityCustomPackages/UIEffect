@@ -16,7 +16,7 @@ namespace Game.Core.UIEffect
         [SerializeField, Range(0, 1)] private float m_Width = 0.25f;
 
         [Tooltip("Rotation for shiny effect.")]
-        [SerializeField, Range(-180, 180)] private float m_Rotation = 0;
+        [SerializeField, Range(-2, 2)] private float m_Rotation = 0;
 
         [Tooltip("Softness for shiny effect.")]
         [SerializeField, Range(0.01f, 1)] private float m_Softness = 1f;

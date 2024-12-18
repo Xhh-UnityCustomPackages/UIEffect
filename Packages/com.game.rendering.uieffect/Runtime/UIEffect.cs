@@ -27,7 +27,7 @@ namespace Game.Core.UIEffect
 
         public List<BaseUIEffect> UIEffects => m_UIEffects;
         private Material m_ModifMaterial;
-        private int m_MaterialHashCode;
+        private Hash128 m_MaterialHashCode;
 
         public T GetUIEffect<T>() where T : BaseUIEffect
         {
@@ -57,6 +57,7 @@ namespace Game.Core.UIEffect
             {
                 return;
             }
+
             m_UIEffects[index].OnDisable();
             m_UIEffects.RemoveAt(index);
         }
@@ -127,16 +128,23 @@ namespace Game.Core.UIEffect
             return GetModifiedMaterial(baseMaterial, graphic);
         }
 
-        int CalcMaterialHash()
+        private const uint k_ShaderId = 2 << 3;
+
+        Hash128 CalcMaterialHash(Material baseMaterial)
         {
             s_KeywordList.Sort();
-            int hashCode = 0;
+            uint hashCode = 0;
             foreach (var effect in s_KeywordList)
             {
-                hashCode = (hashCode * 397) ^ effect.GetHashCode();
+                hashCode = (hashCode * 397) ^ (uint)effect.GetHashCode();
             }
 
-            return hashCode;
+            return new Hash128(
+                (uint)baseMaterial.GetInstanceID(),
+                k_ShaderId + hashCode,
+                0,
+                0
+            );
         }
 
         public virtual Material GetModifiedMaterial(Material baseMaterial, Graphic graphic)
@@ -172,12 +180,12 @@ namespace Game.Core.UIEffect
                 return baseMaterial;
             }
 
-            int hashCode = CalcMaterialHash();
+            var hashCode = CalcMaterialHash(baseMaterial);
             if (m_ModifMaterial == null || m_MaterialHashCode != hashCode)
             {
                 m_MaterialHashCode = hashCode;
                 var modifiedMaterial = MaterialCache.GetMaterial(hashCode, baseMaterial, graphic, s_KeywordList);
-                m_ModifMaterial = Instantiate(modifiedMaterial);
+                m_ModifMaterial = (modifiedMaterial);
             }
 
             ModifyMaterial(m_ModifMaterial);
