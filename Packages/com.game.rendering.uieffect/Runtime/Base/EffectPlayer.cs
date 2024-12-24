@@ -12,7 +12,7 @@ namespace Game.Core.UIEffect
         [Tooltip("Playing.")]
         public bool play = false;
 
-   
+
         [Tooltip("Initial play delay.")]
         [Range(0f, 10f)]
         public float initialPlayDelay = 0;
@@ -26,7 +26,6 @@ namespace Game.Core.UIEffect
         [Tooltip("Delay before looping.")]
         [Range(0f, 10f)]
         public float loopDelay = 0;
-
 
 
         static List<Action> s_UpdateActions;
@@ -74,7 +73,7 @@ namespace Game.Core.UIEffect
         {
             if (reset)
             {
-                _time = 0;
+                _time = -initialPlayDelay;
             }
 
             play = true;
@@ -88,11 +87,8 @@ namespace Game.Core.UIEffect
         {
             if (reset)
             {
-                _time = 0;
-                if (_callback != null)
-                {
-                    _callback(_time);
-                }
+                _time = -initialPlayDelay;
+                _callback?.Invoke(_time);
             }
 
             play = false;
@@ -101,13 +97,13 @@ namespace Game.Core.UIEffect
 
         void OnWillRenderCanvases()
         {
-            if (!play  || _callback == null)
+            if (!play)
             {
                 return;
             }
 
             _time += Time.deltaTime;
-            var current = _time / duration;
+            var current = _time / (loop ? duration : duration - initialPlayDelay);
 
             if (duration <= _time)
             {
@@ -115,7 +111,7 @@ namespace Game.Core.UIEffect
                 _time = loop ? -loopDelay : 0;
             }
 
-            _callback(current);
+            _callback?.Invoke(current);
         }
     }
 }

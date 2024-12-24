@@ -7,13 +7,13 @@ Shader "Hidden/UI/UI-Effect"
 
         _FadeSpeed ("Fade Speed", float) = 1
 
+        [Header(Stencil)]
         [Enum(UnityEngine.Rendering.CompareFunction)] _StencilComp ("Stencil Comparison", Float) = 3
         [Enum(UnityEngine.Rendering.StencilOp)] _StencilOp ("Stencil Operation", Float) = 0
-        [HideInInspector] _Stencil ("Stencil ID", Float) = 1
-        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 1
-        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 0
-
-        [HideInInspector] _ColorMask ("Color Mask", Float) = 15
+        _Stencil ("Stencil ID", Float) = 1
+        _StencilWriteMask ("Stencil Write Mask", Float) = 1
+        _StencilReadMask ("Stencil Read Mask", Float) = 0
+        [Enum(None,0,Alpha,1,Red,8,Green,4,Blue,2,RGB,14,RGBA,15)] _ColorMask ("Color Mask", Float) = 15
 
         //这个选项是影响是否使用RectMask2D的Softness属性
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
@@ -121,13 +121,21 @@ Shader "Hidden/UI/UI-Effect"
             #define ShinyBrightness     _ShinyParams1.w
             #define ShinyGloss          _ShinyParams2.x
             #define ShinyRotation       _ShinyParams2.y
+
+            void Unity_Remap_float4(float In, float2 InMinMax, float2 OutMinMax, out float Out)
+            {
+                Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);
+            }
+
             // Apply shiny effect.
             half4 ApplyShinyEffect(half4 color, float2 newUV)
             {
                 half nomalizedPos = newUV.x;
                 // fixed4 param1 = tex2D(_ParamTex, float2(0.25, shinyParam.y));
                 // fixed4 param2 = tex2D(_ParamTex, float2(0.75, shinyParam.y));
-                half location = ShinyEffectFactor; //param1.x * 2 - 0.5;
+                float finalShinyFactor;
+                Unity_Remap_float4(ShinyEffectFactor, float2(0, 1), float2(-0.2, 1.2), finalShinyFactor);
+                half location = finalShinyFactor; //param1.x * 2 - 0.5;
                 half normalized = 1 - saturate(abs((nomalizedPos - location) / ShinyWidth));
                 half shinePower = smoothstep(0, ShinySoftness, normalized);
                 half3 reflectColor = lerp(half3(1, 1, 1), color.rgb * 7, ShinyGloss);

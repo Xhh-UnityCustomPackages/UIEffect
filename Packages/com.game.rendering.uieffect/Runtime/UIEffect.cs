@@ -185,7 +185,19 @@ namespace Game.Core.UIEffect
             {
                 m_MaterialHashCode = hashCode;
                 var modifiedMaterial = MaterialCache.GetMaterial(hashCode, baseMaterial, graphic, s_KeywordList);
-                m_ModifMaterial = (modifiedMaterial);
+                bool needInstanceMaterial = false;
+
+                var uiShiny = GetUIEffect<UIShiny>();
+                foreach (var effect in m_UIEffects)
+                {
+                    if (effect == null) continue;
+                    if (!effect.Active) continue;
+
+                    if (effect is BaseMaterialEffect materialEffect)
+                        needInstanceMaterial |= materialEffect.InstantiateMaterial;
+                }
+
+                m_ModifMaterial = needInstanceMaterial ? Instantiate(modifiedMaterial) : modifiedMaterial;
             }
 
             ModifyMaterial(m_ModifMaterial);

@@ -8,6 +8,7 @@ namespace Game.Core.UIEffect
     public abstract class BaseMaterialEffect : BaseUIEffect
     {
         public abstract string MaterialKeyWord { get; }
+        public virtual bool InstantiateMaterial => false;
         private bool m_MaterialParamDirty = false;
         private Material m_ModifierMaterial;
 
@@ -38,7 +39,6 @@ namespace Game.Core.UIEffect
 
         public virtual void UpdateMaterialParams(Material material)
         {
-
         }
     }
 }
