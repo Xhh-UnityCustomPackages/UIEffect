@@ -134,7 +134,7 @@ Shader "Hidden/UI/UI-Effect"
                 // fixed4 param1 = tex2D(_ParamTex, float2(0.25, shinyParam.y));
                 // fixed4 param2 = tex2D(_ParamTex, float2(0.75, shinyParam.y));
                 float finalShinyFactor;
-                Unity_Remap_float4(ShinyEffectFactor, float2(0, 1), float2(-0.2, 1.2), finalShinyFactor);
+                Unity_Remap_float4(ShinyEffectFactor, float2(0, 1), float2(0 - ShinyWidth * 1.5, 1 + ShinyWidth * 1.5), finalShinyFactor);
                 half location = finalShinyFactor; //param1.x * 2 - 0.5;
                 half normalized = 1 - saturate(abs((nomalizedPos - location) / ShinyWidth));
                 half shinePower = smoothstep(0, ShinySoftness, normalized);
@@ -204,10 +204,13 @@ Shader "Hidden/UI/UI-Effect"
                 color.rgb = lerp(color.rgb, factor.rgb, factor.a);
                 color.a = color.a * factor.a;
                 #elif GREY
-                color.rgb = lerp(color.rgb, Luminance(color.rgb), _EffectFactor);
+                float luminance = dot(color.rgb, half3(0.2125, 0.7154, 0.0721));
+                // float luminance = dot(color.rgb, half3(0.299, 0.587, 0.114));
+                color.rgb = luminance;
                 #else
                 color.rgb = lerp(color.rgb, color.rgb * factor.rgb, factor.a);
                 #endif
+
                 return color;
             }
 

@@ -171,10 +171,11 @@ namespace Game.Core.UIEffect
             {
                 if (m_ModifMaterial != null)
                 {
-                    if (Application.isPlaying)
-                        Destroy(m_ModifMaterial);
-                    else
-                        DestroyImmediate(m_ModifMaterial);
+                    //是否需要卸载材质?
+                    // if (Application.isPlaying)
+                    //     Destroy(m_ModifMaterial);
+                    // else
+                    //     DestroyImmediate(m_ModifMaterial);
                 }
 
                 return baseMaterial;
@@ -187,7 +188,6 @@ namespace Game.Core.UIEffect
                 var modifiedMaterial = MaterialCache.GetMaterial(hashCode, baseMaterial, graphic, s_KeywordList);
                 bool needInstanceMaterial = false;
 
-                var uiShiny = GetUIEffect<UIShiny>();
                 foreach (var effect in m_UIEffects)
                 {
                     if (effect == null) continue;
@@ -197,7 +197,9 @@ namespace Game.Core.UIEffect
                         needInstanceMaterial |= materialEffect.InstantiateMaterial;
                 }
 
-                m_ModifMaterial = needInstanceMaterial ? Instantiate(modifiedMaterial) : modifiedMaterial;
+
+                if (modifiedMaterial != null)
+                    m_ModifMaterial = needInstanceMaterial ? Instantiate(modifiedMaterial) : modifiedMaterial;
             }
 
             ModifyMaterial(m_ModifMaterial);

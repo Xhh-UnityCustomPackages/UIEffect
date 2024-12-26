@@ -44,10 +44,10 @@ namespace Game.Core.UIEffect
             Shadow,
         }
 
-        [SerializeField] private OutlineStyle m_Style = OutlineStyle.Outline;
+        [SerializeField] private OutlineStyle m_Style = OutlineStyle.Outline8Split;
         [SerializeField] private Color m_EffectColor = new Color(0f, 0f, 0f, 1f);
-        [SerializeField] private Vector2 m_EffectOffset = new Vector2(2f, -2f);
-        [SerializeField] private Vector2 m_EffectOffset2 = new Vector2(2f, -2f);
+        [SerializeField] private Vector2 m_EffectOffset = new Vector2(3f, -3f);
+        [SerializeField] private Vector2 m_EffectOffset2 = new Vector2(3f, -6f);
         // [SerializeField] private bool m_UseGraphicAlpha = true;
 
         public override void ModifyMesh(VertexHelper vh, Graphic graphic)
@@ -187,10 +187,10 @@ namespace Game.Core.UIEffect
 #if UNITY_EDITOR
         public override void Reset()
         {
-            m_Style = OutlineStyle.Outline;
-            m_EffectColor = new Color(0f, 0f, 0f, 0.5f);
-            m_EffectOffset = new Vector2(1f, 1f);
-            m_EffectOffset2 = new Vector2(1f, 1f);
+            m_Style = OutlineStyle.Outline8Split;
+            m_EffectColor = new Color(0f, 0f, 0f, 1f);
+            m_EffectOffset = new Vector2(3f, -3f);
+            m_EffectOffset2 = new Vector2(3f, -6f);
         }
 #endif
     }

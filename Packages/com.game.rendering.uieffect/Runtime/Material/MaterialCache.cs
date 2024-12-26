@@ -15,7 +15,7 @@ namespace Game.Core.UIEffect
         {
             public Material material;
             public Hash128 hashCode;
-            // public int referenceCount;
+            public int referenceCount;
 
             public void Release()
             {
