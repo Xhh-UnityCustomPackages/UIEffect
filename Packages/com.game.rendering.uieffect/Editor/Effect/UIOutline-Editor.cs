@@ -15,21 +15,34 @@ namespace Game.Core.UIEffect.Editor
             switch (effect.style)
             {
                 case UIOutline.OutlineStyle.Outline:
-                    effect.EffectColor = EditorGUILayout.ColorField("EffectOffset:", effect.EffectColor);
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
                     effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
                     break;
                 case UIOutline.OutlineStyle.Outline8:
-                    effect.EffectColor = EditorGUILayout.ColorField("EffectOffset:", effect.EffectColor);
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
                     effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
                     break;
                 case UIOutline.OutlineStyle.Outline8Split:
-                    effect.EffectColor = EditorGUILayout.ColorField("EffectOffset:", effect.EffectColor);
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
                     effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
                     effect.EffectOffset2 = EditorGUILayout.Vector2Field("EffectOffset2:", effect.EffectOffset2);
                     break;
                 case UIOutline.OutlineStyle.Shadow:
-                    effect.EffectColor = EditorGUILayout.ColorField("EffectOffset:", effect.EffectColor);
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
                     effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
+                    break;
+                case UIOutline.OutlineStyle.Circle:
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
+                    effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
+
+                    effect.CircleCount = EditorGUILayout.IntField("CircleCount:", effect.CircleCount);
+                    effect.FirstSample = EditorGUILayout.IntField("FirstSample:", effect.FirstSample);
+                    effect.SampleIncrement = EditorGUILayout.IntField("SampleIncrement:", effect.SampleIncrement);
+                    break;
+                case UIOutline.OutlineStyle.Box:
+                    effect.EffectColor = EditorGUILayout.ColorField("EffectColor:", effect.EffectColor);
+                    effect.EffectOffset = EditorGUILayout.Vector2Field("EffectOffset:", effect.EffectOffset);
+                    effect.HalfSampleCount = EditorGUILayout.Vector2IntField("HalfSampleCount:", effect.HalfSampleCount);
                     break;
             }
 

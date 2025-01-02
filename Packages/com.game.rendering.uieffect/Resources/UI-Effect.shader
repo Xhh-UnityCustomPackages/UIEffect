@@ -82,6 +82,7 @@ Shader "Hidden/UI/UI-Effect"
                 fixed4 color : COLOR;
                 float4 texcoord : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
+                half4 mask : TEXCOORD2;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -89,6 +90,7 @@ Shader "Hidden/UI/UI-Effect"
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
             float4 _ClipRect;
+            float _UIMaskSoftnessX, _UIMaskSoftnessY;
             float4 _MainTex_ST;
 
             #ifdef _FADELOOP_ON
@@ -191,6 +193,11 @@ Shader "Hidden/UI/UI-Effect"
 
                 OUT.color = v.color * _Color;
 
+                float2 pixelSize = OUT.vertex.w;
+                pixelSize /= float2(1, 1) * abs(mul((float2x2)UNITY_MATRIX_P, _ScreenParams.xy));
+                float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
+                OUT.mask = half4(v.vertex.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * half2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+
                 #ifdef _ROTATE_ON
                 ApplyRotate(OUT.texcoord.xy, OUT.texcoord.xy);
                 #endif
@@ -201,7 +208,7 @@ Shader "Hidden/UI/UI-Effect"
             half4 ApplyColorEffect(half4 color, half4 factor)
             {
                 #ifdef FILL
-                color.rgb = lerp(color.rgb, factor.rgb, factor.a);
+                color.rgb = factor.rgb;
                 color.a = color.a * factor.a;
                 #elif GREY
                 float luminance = dot(color.rgb, half3(0.2125, 0.7154, 0.0721));
@@ -247,7 +254,9 @@ Shader "Hidden/UI/UI-Effect"
                 #endif
 
                 #ifdef UNITY_UI_CLIP_RECT
-                color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
+                // color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
+                half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(IN.mask.xy)) * IN.mask.zw);
+                color.a *= m.x * m.y;
                 #endif
 
                 #ifdef UNITY_UI_ALPHACLIP

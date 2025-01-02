@@ -34,6 +34,31 @@ namespace Game.Core.UIEffect
             get => m_EffectOffset2;
             set => m_EffectOffset2 = value;
         }
+
+
+        public int CircleCount
+        {
+            get => m_CircleCount;
+            set => m_CircleCount = value;
+        }
+
+        public int FirstSample
+        {
+            get => m_FirstSample;
+            set => m_FirstSample = value;
+        }
+
+        public int SampleIncrement
+        {
+            get => m_SampleIncrement;
+            set => m_SampleIncrement = value;
+        }
+
+        public Vector2Int HalfSampleCount
+        {
+            get => m_HalfSampleCount;
+            set => m_HalfSampleCount = value;
+        }
 #endif
 
         public enum OutlineStyle
@@ -42,13 +67,24 @@ namespace Game.Core.UIEffect
             Outline8,
             Outline8Split,
             Shadow,
+
+            //下面两个来源自https://github.com/n-yoda/unity-vertex-effects
+            Circle,
+            Box,
         }
 
         [SerializeField] private OutlineStyle m_Style = OutlineStyle.Outline8Split;
         [SerializeField] private Color m_EffectColor = new Color(0f, 0f, 0f, 1f);
         [SerializeField] private Vector2 m_EffectOffset = new Vector2(3f, -3f);
         [SerializeField] private Vector2 m_EffectOffset2 = new Vector2(3f, -6f);
-        // [SerializeField] private bool m_UseGraphicAlpha = true;
+
+        [Header("Circle")] [SerializeField] private int m_CircleCount = 2;
+        [SerializeField] private int m_FirstSample = 4;
+        [SerializeField] private int m_SampleIncrement = 2;
+
+        [Header("Box")] [SerializeField] private Vector2Int m_HalfSampleCount = new Vector2Int(1, 1);
+
+        [SerializeField] private bool m_UseGraphicAlpha = true;
 
         public override void ModifyMesh(VertexHelper vh, Graphic graphic)
         {
@@ -69,7 +105,7 @@ namespace Game.Core.UIEffect
                 var start = s_Verts.Count - _graphicVertexCount;
                 var end = s_Verts.Count;
                 var targetColor = m_EffectColor;
-                targetColor.a *= graphic.color.a;//乘以原始定点色A通道
+                targetColor.a *= graphic.color.a; //乘以原始定点色A通道
                 ApplyOutline(s_Verts, targetColor, ref start, ref end, false);
             }
 
@@ -126,6 +162,79 @@ namespace Game.Core.UIEffect
                 case OutlineStyle.Shadow:
                     ApplyOutlineZeroAlloc(verts, color, ref start, ref end, x, y, alpha);
                     break;
+                case OutlineStyle.Circle:
+                {
+                    var count = 0;
+                    var original = verts.Count;
+                    var sampleCount = m_FirstSample;
+
+                    var dx = m_EffectOffset.x / m_CircleCount;
+                    var dy = m_EffectOffset.y / m_CircleCount;
+                    for (int i = 1; i <= m_CircleCount; i++)
+                    {
+                        var rx = dx * i;
+                        var ry = dy * i;
+                        var radStep = 2 * Mathf.PI / sampleCount;
+                        var rad = (i % 2) * radStep * 0.5f;
+                        for (int j = 0; j < sampleCount; j++)
+                        {
+                            var next = count + original;
+                            ApplyShadow(verts, color, count, next, rx * Mathf.Cos(rad), ry * Mathf.Sin(rad));
+                            count = next;
+                            rad += radStep;
+                        }
+
+                        sampleCount += m_SampleIncrement;
+                    }
+                }
+                    break;
+                case OutlineStyle.Box:
+                {
+                    var original = verts.Count;
+                    var count = 0;
+                    var dx = m_EffectOffset.x / m_HalfSampleCount.x;
+                    var dy = m_EffectOffset.y / m_HalfSampleCount.y;
+                    for (int ix = -m_HalfSampleCount.x; ix <= m_HalfSampleCount.x; ix++)
+                    {
+                        for (int iy = -m_HalfSampleCount.y; iy <= m_HalfSampleCount.y; iy++)
+                        {
+                            if (!(ix == 0 && iy == 0))
+                            {
+                                var next = count + original;
+                                ApplyShadow(verts, color, count, next, dx * ix, dy * iy);
+                                count = next;
+                            }
+                        }
+                    }
+                }
+                    break;
+            }
+        }
+
+
+        protected new void ApplyShadow(List<UIVertex> verts, Color32 color, int start, int end, float x, float y)
+        {
+            UIVertex vt;
+
+            // The capacity calculation of the original version seems wrong.
+            var neededCpacity = verts.Count + (end - start);
+            if (verts.Capacity < neededCpacity)
+                verts.Capacity = neededCpacity;
+
+            for (int i = start; i < end; ++i)
+            {
+                vt = verts[i];
+                verts.Add(vt);
+
+                Vector3 v = vt.position;
+                v.x += x;
+                v.y += y;
+                vt.position = v;
+                var newColor = color;
+                if (m_UseGraphicAlpha)
+                    newColor.a = (byte)((newColor.a * verts[i].color.a) / 255);
+                vt.color = newColor;
+                verts[i] = vt;
             }
         }
 
