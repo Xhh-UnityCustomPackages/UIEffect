@@ -6,6 +6,7 @@ using UnityEngine.UI;
 namespace Game.Core.UIEffect
 {
     [RequireComponent(typeof(RectTransform))]
+    [ExecuteAlways]
     public class GraphicGroup : MonoBehaviour
     {
         public enum Mode
@@ -21,7 +22,7 @@ namespace Game.Core.UIEffect
         [SerializeField] private RectTransform m_RectTransform;
 
         [SerializeField, Range(-1, 1)] private float m_Offset1;
-        
+
         public Color Color
         {
             get => m_Color;
@@ -37,8 +38,8 @@ namespace Game.Core.UIEffect
             get
             {
                 return m_Mode == Mode.Horizontal ? -90
-                : m_Mode == Mode.Vertical ? 0
-                : 0;
+                    : m_Mode == Mode.Vertical ? 0
+                    : 0;
             }
         }
 
@@ -113,6 +114,7 @@ namespace Game.Core.UIEffect
 
                         vh.FillMesh(mesh);
                     }
+
                     graphics[i].canvasRenderer.SetMesh(mesh);
                 }
             }
@@ -123,7 +125,11 @@ namespace Game.Core.UIEffect
         /// </summary>
         private void OnDisable()
         {
-            UpdateColor(Color.white);
+            var graphics = GetComponentsInChildren<Graphic>(true);
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                graphics[i].canvasRenderer.SetColor(Color.white);
+            }
         }
 
 #if UNITY_EDITOR
@@ -137,6 +143,5 @@ namespace Game.Core.UIEffect
             if (m_RectTransform == null) m_RectTransform = GetComponent<RectTransform>();
         }
 #endif
-
     }
 }
